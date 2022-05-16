@@ -1,5 +1,6 @@
 
 import com.demo.MyApplication;
+import org.apache.tomcat.jni.Proc;
 import org.flowable.common.engine.impl.identity.Authentication;
 import org.flowable.engine.*;
 import org.flowable.engine.repository.Deployment;
@@ -21,6 +22,8 @@ import java.util.UUID;
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {MyApplication.class}, webEnvironment = SpringBootTest.WebEnvironment.NONE)
 public class MyTest {
+    @Autowired
+    private ProcessEngine engine;
     @Autowired
     private RepositoryService repositoryService;
     @Autowired
@@ -87,13 +90,14 @@ public class MyTest {
         Authentication.setAuthenticatedUserId(demoInitiator);
         ProcessInstance processInstance = runtimeService.startProcessInstanceById(processDefinitionId, businessId, map);
         Authentication.setAuthenticatedUserId(null);
+        runtimeService.setVariable(processInstance.getId(), "demoAssignee",null);
         System.out.printf("流程id-%s\n", processInstance.getId());
     }
 
     /**
      * 查任务
      */
-    public void queryTask(String assignee) {
+    public List<Task> queryTask(String assignee) {
         //String assignee="id-w";
         List<Task> list = taskService.createTaskQuery()
                 .taskAssignee(assignee)
@@ -112,6 +116,7 @@ public class MyTest {
         } else {
             System.out.printf("没有任务需要处理!");
         }
+        return list;
     }
 
     /**
@@ -121,30 +126,53 @@ public class MyTest {
             demoLevel) {
         Task task = taskService.createTaskQuery()
                 .taskId(taskId).singleResult();
+        Map<String,Object> map=new HashMap<>();
         if (demoFlag != null && !"".equals(demoFlag)) {
-            taskService.setVariable(task.getId(), "demoFlag", demoFlag);
+            map.put("demoFlag", demoFlag);
         }
-        if (demoAssignee != null && !"".equals(demoAssignee)) {
-            taskService.setVariable(task.getId(), "demoAssignee", demoAssignee);
-        }
-        taskService.setVariable(task.getId(), "demoLevel", demoLevel);
+        map.put( "demoLevel", demoLevel);
+        map.put( "demoAssignee", demoAssignee);
+
+        runtimeService.setVariables(task.getExecutionId(),map);
         taskService.complete(task.getId());
+        map.put("demoFlag", null);
+        map.put( "demoLevel", -1);
+        map.put( "demoAssignee", null);
+        runtimeService.setVariables(task.getExecutionId(),map);
+    }
+
+    @Test
+    public void deleteAll(){
+        List<Deployment> list = repositoryService.createDeploymentQuery().list();
+        for(Deployment deployment:list) {
+            //删除部署
+            repositoryService.deleteDeployment(deployment.getId(),true);
+        }
+         deploy("demo-name1.bpmn20.xml");
     }
 
     @Test
     public void LyTest(){
-
+      //deleteAll();
         //非隐患驳回
-       // deploy("demo-name1.bpmn20.xml");
-        //run("demo-key1:1:b1f9d2de-d4c8-11ec-9120-28d0ea3a9c2a","id-f","id-w","busi-"+UUID.randomUUID().toString());
-        //queryTask("id-w");
-        //completeTask("3f266b66-d4c9-11ec-9373-28d0ea3a9c2a","0","",0);
-
-
-        //deploy("demo-name1.bpmn20.xml");
-        //run("demo-key1:1:b1f9d2de-d4c8-11ec-9120-28d0ea3a9c2a","id-f","id-w","busi-"+UUID.randomUUID().toString());
+        /*run("demo-key1:1:7cffa9ba-d4e2-11ec-babb-28d0ea3a9c2a","id-f","id-w","busi-"+UUID.randomUUID().toString());
          queryTask("id-w");
-        //completeTask("3f266b66-d4c9-11ec-9373-28d0ea3a9c2a","0","",0);
+       completeTask("9256c4e5-d4e2-11ec-8414-28d0ea3a9c2a","0","",0);*/
+
+
+        //指派人驳回
+       //run("demo-key1:1:fd99de8b-d4ed-11ec-bd74-28d0ea3a9c2a","id-f","id-w","busi-"+UUID.randomUUID().toString());
+          //queryTask("id-w");
+         //通过并指派人
+        //completeTask("1ce24b54-d4ee-11ec-a6e4-28d0ea3a9c2a","1","id-r",0);
+
+
+        //指派人进行处理
+        //run("demo-key1:1:fd99de8b-d4ed-11ec-bd74-28d0ea3a9c2a","id-f","id-w","busi-"+UUID.randomUUID().toString());
+        //queryTask("id-w");
+        //通过并处理[隐患重大]
+        //completeTask("46b3dc03-d4ee-11ec-9dfe-28d0ea3a9c2a","1","xx",11);
+
     }
 
 }
