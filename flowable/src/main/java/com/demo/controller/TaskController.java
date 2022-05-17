@@ -39,12 +39,22 @@ public class TaskController {
         return HttpResult.ok(taskDtos);
     }
 
+    /**
+     * 完成（时指定）、驳回
+     * @param taskId
+     * @param demoFlag
+     * @param demoAssignee
+     * @param demoLevel
+     * @return
+     */
     @RequestMapping("complete")
     public HttpResult run(@RequestParam("taskId") String taskId,@RequestParam("demoFlag") String demoFlag,@RequestParam("demoAssignee") String demoAssignee,@RequestParam("demoLevel")int
             demoLevel){
         flowableService.completeTask(taskId,demoFlag,demoAssignee,demoLevel);
         return HttpResult.ok();
     }
+
+
 
 
 }
