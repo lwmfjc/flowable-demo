@@ -4,6 +4,8 @@ import org.flowable.task.service.delegate.DelegateTask;
 import org.flowable.task.service.delegate.TaskListener;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
+
 @Component
 public class DemoTaskListener implements TaskListener {
 
@@ -15,12 +17,11 @@ public class DemoTaskListener implements TaskListener {
         +delegateTask.getCreateTime());
         //如果是创建事件
         if("create".equals(eventName)){
-            Object demoAssignee = delegateTask.getVariable("demoAssignee");
-            /*demoAssignee=(null==demoAssignee||"".equals(demoAssignee))?delegateTask
-                    .getVariableLocal("demoAssignee"):demoAssignee;*/
-            if(null!=demoAssignee && !"".equals(demoAssignee)){
-                delegateTask.setAssignee(demoAssignee.toString());
-                //execution.setE
+            HashMap map = (HashMap<String,Object>)delegateTask.getVariable("busiEntity");
+            Object flowAssignee = map.get("flowAssignee");
+            //如果设置了处理人
+            if(null!=flowAssignee && !"".equals(flowAssignee)){
+                delegateTask.setAssignee(flowAssignee.toString());
             }
         }
     }

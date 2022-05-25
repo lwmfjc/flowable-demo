@@ -1,6 +1,6 @@
 
 import com.demo.MyApplication;
-import org.apache.tomcat.jni.Proc;
+import com.demo.entity.DangerReport;
 import org.flowable.common.engine.impl.identity.Authentication;
 import org.flowable.engine.*;
 import org.flowable.engine.repository.Deployment;
@@ -10,14 +10,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {MyApplication.class}, webEnvironment = SpringBootTest.WebEnvironment.NONE)
@@ -73,21 +70,26 @@ public class MyTest {
     }
 
     /**
+     * 送审(运行)
+     * @param processDefinitionId
+     * @param businessId
+     */
+    public void send(String processDefinitionId, String businessId){
+
+    }
+
+    /**
      * 运行流程实例
      */
-    public void run(String processDefinitionId,String demoInitiator, String demoAssignee, String businessId) {
-        if (demoInitiator == null || "".equals(demoInitiator)
-                || demoAssignee == null || "".equals(demoAssignee) || businessId == null || "".equals(businessId)) {
-            System.out.println("参数缺失");
-            return;
-        }
+    public void run(String processDefinitionId, String businessId,String flowInitiator, String flowAssignee) {
+
         Map<String, Object> map = new HashMap<>();
 
         //在运行流程的时候就设置好发起人和网格员
         //map.put("demoInitiator", demoInitiator);
-        map.put("demoAssignee", demoAssignee);
+       // map.put("demoAssignee", demoAssignee);
         //设置流程发起人
-        Authentication.setAuthenticatedUserId(demoInitiator);
+        //Authentication.setAuthenticatedUserId(demoInitiator);
         ProcessInstance processInstance = runtimeService.startProcessInstanceById(processDefinitionId, businessId, map);
         Authentication.setAuthenticatedUserId(null);
         runtimeService.setVariable(processInstance.getId(), "demoAssignee",null);
@@ -152,12 +154,33 @@ public class MyTest {
     }
 
     @Test
+    public void updateVariables(){
+        String taskId="b1756856-d50f-11ec-a479-c2b5d726e00b";
+        /*Map<String,Object> map=new HashMap<>();
+        TestHoliday entity=new TestHoliday();
+        entity.setDays(3);
+        entity.setId("2dsg2a2");
+        entity.setRemark("beizhudd");
+        map.put("a1",entity);
+        taskService.setVariables(taskId,map);*/
+       /* Map<String, Object> a1 = taskService.getVariables(taskId);
+        Object a11 = a1.get("a1");
+        System.out.println(a11);*/
+        DangerReport testHoliday=new DangerReport();
+        Map<String,Object> entityMap=new HashMap<>();
+        testHoliday.setId("1");
+        entityMap.put("entity",testHoliday);
+        taskService.complete(taskId,entityMap);
+    }
+
+    @Test
     public void LyTest(){
+        deploy("demo-name1.bpmn20.xml");
       //deleteAll();
         //非隐患驳回
-        /*run("demo-key1:1:7cffa9ba-d4e2-11ec-babb-28d0ea3a9c2a","id-f","id-w","busi-"+UUID.randomUUID().toString());
-         queryTask("id-w");
-       completeTask("9256c4e5-d4e2-11ec-8414-28d0ea3a9c2a","0","",0);*/
+        //run("obj-test-key:1:4e462c79-d50f-11ec-90f1-c2b5d726e00b","id-f","id-w","busi-"+UUID.randomUUID().toString());
+         //queryTask("id-w");
+       //completeTask("9256c4e5-d4e2-11ec-8414-28d0ea3a9c2a","0","",0);
 
 
         //指派人驳回
